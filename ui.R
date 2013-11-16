@@ -66,7 +66,7 @@ shinyUI(pageWithSidebar(
     tags$a("Blog Post", 
            href="http://www.econometricsbysimulation.com/2013/11/a-shiny-app-for-playing-with-ols.html"),
     h5("For details on how data is generated:"),
-    tags$a("Github Repository: Econometrics-Apps", 
+    tags$a("Github Repository:", 
            href="https://github.com/EconometricsBySimulation/OLS-demo-App/"),
     h5(textOutput("counter"))
     ),

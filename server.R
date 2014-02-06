@@ -1,7 +1,12 @@
 library(shiny)
+library(rmongodb) # Database writing tool
+
+print(getwd())
+
+load("mongodb-login.RData")
+
 input <- list(rseed=1)
 
-# A function for generating the data.
 data.maker <- function(nobs, 
                        expr, 
                        seed=1, 
@@ -20,7 +25,6 @@ data.maker <- function(nobs,
   x4 <- x^4
   x5 <- x^5
   expx <- exp(x)
-  # This evuates the expression chosen by the user.
   y <- eval(parse(text=expr))
   if (yscalar) y <- -y
   data.frame(x=x,x2=x2,x3=x3,x4=x4,x5=x5
@@ -32,11 +36,32 @@ shinyServer(function(input, output) {
   # Hit counter
   output$counter <- 
     renderText({
-      if (!file.exists("counter.Rdata")) counter <- 0
-      if (file.exists("counter.Rdata")) load(file="counter.Rdata")
-      counter <- counter + 1
+      # Host, username, and password specified in 
+      # "mongodb-login.RData" 
+#     host <- ""
+#     username <- ""
+#     password <- ""
+      db <- "econometricsbysimulation"
       
-      save(counter, file="counter.Rdata")     
+      mongo <- mongo.create(host=host , db=db, 
+                            username=username, 
+                            password=password)
+      
+      collection <- "OLS-app"
+      namespace <- paste(db, collection, sep=".") 
+      
+      # insert entry
+      b <- mongo.bson.from.list(list(platform="MongoHQ", 
+                 app="counter", date=toString(Sys.Date())))
+      ok <- mongo.insert(mongo, namespace, b)
+      
+      # query database for hit count
+      buf <- mongo.bson.buffer.create()
+      mongo.bson.buffer.append(buf, "app", "counter")
+      query <- mongo.bson.from.buffer(buf)
+      
+      counter <- mongo.count(mongo, namespace, query)
+           
       paste0("Hits: ", counter)
     })
   
